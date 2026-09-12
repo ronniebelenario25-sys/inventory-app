@@ -3,7 +3,7 @@ import plotly.express as px
 import requests
 import streamlit as st
 
-# Supabase REST Configuration (Updated Correct Reference ID)
+# Supabase REST Configuration
 SUPABASE_URL = "https://rwcvjhpjnelefeuoajkq.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3ZqaHBqbmVsZWZldW9hamtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTM3ODcsImV4cCI6MjEwNDc4OTc4N30.8XkTZys3WGP5JiJIo6-MlQeCmtlMJJS0EwRvFcIj-8I"
 
@@ -11,16 +11,15 @@ HEADERS = {
     "apikey": SUPABASE_KEY,
     "Authorization": f"Bearer {SUPABASE_KEY}",
     "Content-Type": "application/json",
+    "Prefer": "return=representation",
 }
 
-# Page Setup
 st.set_page_config(page_title="Advanced Inventory System", layout="wide")
 st.title("📦 Smart Inventory & Operations Dashboard")
 
 
-# Direct REST API Helper Function
 def get_inventory_data():
-    endpoint = f"{SUPABASE_URL}/rest/v1/inventory?select=*"
+    endpoint = f"{SUPABASE_URL}/rest/v1/inventory?select=*&order=id.asc"
     try:
         res = requests.get(endpoint, headers=HEADERS, timeout=10)
         if res.status_code == 200 and res.json():
@@ -80,6 +79,64 @@ if not df.empty:
     )
 
     with tab1:
+        col_add, col_del = st.columns(2)
+
+        # --- ADD NEW ITEM ---
+        with col_add:
+            st.subheader("➕ Add New Inventory Item")
+            with st.form("add_item_form", clear_on_submit=True):
+                new_item_name = st.text_input("Product Name")
+                new_item_qty = st.number_input(
+                    "Initial Stock Quantity", min_value=0, value=10
+                )
+                submit_btn = st.form_submit_button("Add Product")
+
+                if submit_btn:
+                    if new_item_name.strip():
+                        insert_url = f"{SUPABASE_URL}/rest/v1/inventory"
+                        payload = {
+                            "item_name": new_item_name.strip(),
+                            "quantity": new_item_qty,
+                        }
+                        post_res = requests.post(
+                            insert_url,
+                            headers=HEADERS,
+                            json=payload,
+                            timeout=10,
+                        )
+                        if post_res.status_code in [200, 201]:
+                            st.success(f"Added '{new_item_name}' successfully!")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to add item: {post_res.text}")
+                    else:
+                        st.warning("Please enter a valid product name.")
+
+        # --- DELETE ITEM ---
+        with col_del:
+            st.subheader("🗑️ Delete Product")
+            delete_target = st.selectbox(
+                "Select Product to Remove",
+                df["Item_Name"].unique(),
+                key="del_select",
+            )
+            if st.button("Delete Selected Product", type="primary"):
+                name_target = (
+                    "item_name" if "item_name" in df.columns else "Item_Name"
+                )
+                delete_url = f"{SUPABASE_URL}/rest/v1/inventory?{name_target}=eq.{delete_target}"
+                del_res = requests.delete(
+                    delete_url, headers=HEADERS, timeout=10
+                )
+                if del_res.status_code in [200, 204]:
+                    st.success(
+                        f"Deleted '{delete_target}' permanently from Supabase!"
+                    )
+                    st.rerun()
+                else:
+                    st.error(f"Delete failed: {del_res.text}")
+
+        st.divider()
         st.subheader("Live Inventory Table")
         st.dataframe(filtered_df, use_container_width=True)
 
