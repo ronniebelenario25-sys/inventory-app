@@ -3,8 +3,8 @@ import plotly.express as px
 import requests
 import streamlit as st
 
-# Supabase REST Configuration
-SUPABASE_URL = "https://rwcvjhpjnelefauoajkq.supabase.co"
+# Supabase REST Configuration (Updated Correct Reference ID)
+SUPABASE_URL = "https://rwcvjhpjnelefeuoajkq.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3ZqaHBqbmVsZWZldW9hamtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTM3ODcsImV4cCI6MjEwNDc4OTc4N30.8XkTZys3WGP5JiJIo6-MlQeCmtlMJJS0EwRvFcIj-8I"
 
 HEADERS = {
