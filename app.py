@@ -1,32 +1,34 @@
 import pandas as pd
 import plotly.express as px
+import requests
 import streamlit as st
-from supabase import create_client
 
-# Direct Supabase Credentials
+# Supabase REST Configuration
 SUPABASE_URL = "https://rwcvjhpjnelefauoajkq.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3ZqaHBqbmVsZWZldW9hamtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTM3ODcsImV4cCI6MjEwNDc4OTc4N30.8XkTZys3WGP5JiJIo6-MlQeCmtlMJJS0EwRvFcIj-8I"
 
-# Page Setup (MUST be the first Streamlit command)
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+}
+
+# Page Setup
 st.set_page_config(page_title="Advanced Inventory System", layout="wide")
 st.title("📦 Smart Inventory & Operations Dashboard")
 
 
-# Initialize Supabase Client
-@st.cache_resource
-def init_supabase():
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
-
-
-supabase = init_supabase()
-
-
-# Helper function to fetch latest table data safely
+# Direct REST API Helper Function
 def get_inventory_data():
+    endpoint = f"{SUPABASE_URL}/rest/v1/inventory?select=*"
     try:
-        response = supabase.table("inventory").select("*").execute()
-        if response.data:
-            return pd.DataFrame(response.data)
+        res = requests.get(endpoint, headers=HEADERS, timeout=10)
+        if res.status_code == 200 and res.json():
+            return pd.DataFrame(res.json())
+        elif res.status_code != 200:
+            st.error(
+                f"Supabase API Error (Status {res.status_code}): {res.text}"
+            )
     except Exception as e:
         st.error(f"Failed to connect to Supabase database: {e}")
     return pd.DataFrame()
@@ -97,11 +99,18 @@ if not df.empty:
                 "item_name" if "item_name" in df.columns else "Item_Name"
             )
 
-            supabase.table("inventory").update({col_target: new_stock}).eq(
-                name_target, selected_item
-            ).execute()
-            st.success(f"Updated '{selected_item}' stock to {new_stock}!")
-            st.rerun()
+            update_url = f"{SUPABASE_URL}/rest/v1/inventory?{name_target}=eq.{selected_item}"
+            patch_res = requests.patch(
+                update_url,
+                headers=HEADERS,
+                json={col_target: new_stock},
+                timeout=10,
+            )
+            if patch_res.status_code in [200, 204]:
+                st.success(f"Updated '{selected_item}' stock to {new_stock}!")
+                st.rerun()
+            else:
+                st.error(f"Update failed: {patch_res.text}")
 
     with tab2:
         st.subheader("Inventory vs Minimum Thresholds")
