@@ -3,17 +3,19 @@ import plotly.express as px
 import streamlit as st
 from supabase import create_client
 
+# Direct Supabase Credentials
+SUPABASE_URL = "https://rwcvjhpjnelefauoajkq.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3ZqaHBqbmVsZWZldW9hamtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTM3ODcsImV4cCI6MjEwNDc4OTc4N30.8XkTZys3WGP5JiJIo6-MlQeCmtlMJJS0EwRvFcIj-8I"
+
 # Page Setup (MUST be the first Streamlit command)
 st.set_page_config(page_title="Advanced Inventory System", layout="wide")
 st.title("📦 Smart Inventory & Operations Dashboard")
 
 
-# Initialize Supabase using Streamlit Secrets
+# Initialize Supabase Client
 @st.cache_resource
 def init_supabase():
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
-    return create_client(url, key)
+    return create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
 supabase = init_supabase()
