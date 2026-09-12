@@ -4,7 +4,7 @@ import streamlit as st
 from supabase import create_client
 
 # Direct Supabase Credentials (Bypassing Streamlit Secrets)
-https://rwcvjhpjnelefauoajkq.supabase.com
+https://rwcvjhpjnelefauoajkq.supabase.co
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3Y3ZqaHBqbmVsZWZldW9hamtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMTM3ODcsImV4cCI6MjEwNDc4OTc4N30.8XkTZys3WGP5JiJIo6-MlQeCmtlMJJS0EwRvFcIj-8I"
 
 
